@@ -1,0 +1,33 @@
+- name: configuring mongodb server
+  become: yes
+  hosts: mongodb #host name should match with name given in inventory file
+  tasks:
+  - name: copy mongodb repo
+    ansible.builtin.copy: #Search ansible copy module in google to find the modules
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: Install mongodb server
+    ansible.builtin.dnf: #Ansible package module or dnf
+      name: mongodb-org
+      state: present
+  
+  - name: start and enable mongodb
+    ansible.builtin.service: #Ansible service module 
+      name: mongod
+      state: started #To start the mongod
+      enabled: yes #To enable the mongod
+
+  - name: allow remote connections
+    ansible.builtin.replace: #Ansible replace module
+      path: /etc/mongod.conf
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
+
+  - name: restart mongodb
+    ansible.builtin.service: 
+      name: mongod
+      state: restarted
+
+#Command to run this play book: 
+#ansible-playbook -i inventory.ini -e ansible_user=ec2-user -e ansible_password=DevOps321 mongodb.yaml
