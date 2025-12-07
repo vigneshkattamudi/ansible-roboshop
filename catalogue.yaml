@@ -1,0 +1,24 @@
+- name: configuring nodejs
+  become: yes
+  hosts: catalogue
+  tasks:
+  - name: disabling nodejs
+    ansible.builtin.command: dnf module disable nodejs -y
+    register: command_output
+
+  - name: print command output
+    ansible.builtin.debug:
+      msg: "{{ command_output }}"
+
+  - name: disabling nodejs
+    ansible.builtin.command: dnf module enable nodejs:20 -y
+    register: command_output
+
+  - name: print command output
+    ansible.builtin.debug:
+      msg: "{{ command_output }}"
+
+  - name: installing nodejs
+    ansible.builtin.dnf:
+      name: nodejs
+      state: present
