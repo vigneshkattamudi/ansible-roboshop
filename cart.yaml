@@ -1,43 +1,48 @@
-- name: configuring nodejs
-  become: yes
+- name: configure cart component
   hosts: cart
+  become: yes
   tasks:
-  - name: disabling nodejs
+  - name: disable default nodejs
     ansible.builtin.command: dnf module disable nodejs -y
 
-  - name: disabling nodejs
+  - name: enable nodejs:20
     ansible.builtin.command: dnf module enable nodejs:20 -y
-    register: command_output
 
-  - name: installing nodejs
+  - name: Install nodejs
     ansible.builtin.dnf:
       name: nodejs
       state: present
 
-  - name: create app directory
-    ansible.builtin.file:
-      path: /app
-      state: directory
-
-  - name: Add application User
+  - name: create roboshop system user
     ansible.builtin.user:
       name: roboshop
       shell: /sbin/nologin
       system: true
       home: /app
+  
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
 
-  - name: Unarchive a file that needs to be downloaded
+  - name: download cart code
+    ansible.builtin.get_url:
+      url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip 
+      dest: /tmp/cart.zip
+
+  # this module thinks file exist on ansible control server, needs to extract on to remote machine
+  # remote_src: yes means files already exist in cart server
+  - name: extract cart code
     ansible.builtin.unarchive:
-      src: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip
+      src: /tmp/cart.zip
       dest: /app
       remote_src: yes
 
-  - name: Update packages based on package.json to their latest version.
+  - name: install dependencies
     community.general.npm:
       path: /app
-      state: latest
 
-  - name: Copying cart.service
+  - name: copy cart service to system directory
     ansible.builtin.copy:
       src: cart.service
       dest: /etc/systemd/system/cart.service
