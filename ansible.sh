@@ -24,3 +24,21 @@ aws ec2 run-instances \
   --security-group-ids "$SG_ID" \
   --user-data "$USER_DATA" \
   --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=Ansible-Host}]'
+
+# Fetch IPs
+PUBLIC_IP=$(aws ec2 describe-instances \
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].PublicIpAddress" \
+  --output text)
+
+PRIVATE_IP=$(aws ec2 describe-instances \
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].PrivateIpAddress" \
+  --output text)
+
+echo "---------------------------------"
+echo "EC2 Instance Details"
+echo "Instance ID : $INSTANCE_ID"
+echo "Public IP   : $PUBLIC_IP"
+echo "Private IP  : $PRIVATE_IP"
+echo "---------------------------------"
